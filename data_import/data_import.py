@@ -29,19 +29,18 @@ class DataImporter():
         table_name = csv_file.split('/')[-1].replace('.csv', '')
 
         create_statement = 'create column table "' + table_name + '" ('
-        create_statement += self._add_primary_key(header[0])
-        for attribute in header[1:]:
+        for attribute in header:
             create_statement += ',' + self._add_attribute(attribute,
                                                           table_name)
-        create_statement += ');'
+        create_statement = create_statement.replace(',', '', 1) + ');'
         self._run_sql(create_statement)
-
-    def _add_primary_key(self, name):
-        return name + ' nvarchar(36) primary key not null'
 
     def _add_attribute(self, attribute, table_name):
         table_attribute = table_name.lower() + '.' + attribute.lower()
-        if attribute[-4:].lower() == 'guid':
+
+        if table_name.lower() + 'guid' == attribute.lower():
+            return attribute + ' nvarchar(36) primary key not null'
+        elif attribute[-4:].lower() == 'guid':
             return attribute + ' nvarchar(36) not null'
         elif table_attribute in ATTRIBUTE_EXCEPTIONS:
             return attribute + ' ' + ATTRIBUTE_EXCEPTIONS[table_attribute]
