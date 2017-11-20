@@ -2,6 +2,12 @@ import glob
 import json
 
 
+ATTRIBUTE_EXCEPTIONS = {
+    'diagnosis.startyear': 'smallint',
+    'medication.medicationname': 'nvarchar(256)'
+}
+
+
 class DataImporter():
     def __init__(self, csv_path, attributes_json):
         self.csv_path = csv_path
@@ -25,17 +31,22 @@ class DataImporter():
         create_statement = 'create column table ' + table_name + '('
         create_statement += self._add_primary_key(header[0])
         for attribute in header[1:]:
-            create_statement += ',' + self._add_attribute(attribute)
+            create_statement += ',' + self._add_attribute(attribute,
+                                                          table_name)
         create_statement += ');'
         self._run_sql(create_statement)
 
     def _add_primary_key(self, name):
         return name + ' nvarchar(36) primary key not null'
 
-    def _add_attribute(self, attribute):
+    def _add_attribute(self, attribute, table_name):
+        table_attribute = table_name.lower() + '.' + attribute.lower()
         if attribute[-4:].lower() == 'guid':
             return attribute + ' nvarchar(36) not null'
-        return attribute + ' ' + self.attributes[attribute.lower()]
+        elif table_attribute in ATTRIBUTE_EXCEPTIONS:
+            return attribute + ' ' + ATTRIBUTE_EXCEPTIONS[table_attribute]
+        else:
+            return attribute + ' ' + self.attributes[attribute.lower()]
 
 
 def main():
