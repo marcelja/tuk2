@@ -28,7 +28,7 @@ class DataImporter():
         header = header.replace('"', '').replace('\n', '').split(',')
         table_name = csv_file.split('/')[-1].replace('.csv', '')
 
-        create_statement = 'create column table ' + table_name + '('
+        create_statement = 'create column table "' + table_name + '" ('
         create_statement += self._add_primary_key(header[0])
         for attribute in header[1:]:
             create_statement += ',' + self._add_attribute(attribute,
