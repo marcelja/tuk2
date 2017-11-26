@@ -1,0 +1,9 @@
+name: tuk2
+dependencies:
+- python=3.5
+- pip:
+  - jupyter==1.0.0
+  - matplotlib==2.1.0
+  - https://github.com/hpi-epic/pyHANA/archive/master.zip
+  - pyyaml==3.12
+  - pandas==0.21
