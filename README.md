@@ -8,7 +8,7 @@ source activate tuk2
 
 ```
 
-#Connection
+# Connection
 
 Create credentials.yml file in repo root dir to connect to HANA db
 
