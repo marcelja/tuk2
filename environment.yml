@@ -7,3 +7,7 @@ dependencies:
   - https://github.com/hpi-epic/pyHANA/archive/master.zip
   - pyyaml==3.12
   - pandas==0.21
+  - scikit-learn==0.19.1
+  - scipy==1.0.0
+  - numpy==1.13.3
+  - flask==0.12.2

@@ -3,7 +3,7 @@
 # Installation
 Setup env  
 ```
-conda env create -f environmental.yml 
+conda env create -f environment.yml 
 source activate tuk2
 
 ```
