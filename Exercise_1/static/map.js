@@ -1,15 +1,14 @@
-var map = L.map('map').setView([37.8, -96], 4);
+var map = L.map('map').setView([37.8, -96], 5);
 
 L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
     maxZoom: 18,
-    attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
-    '<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
-    'Imagery © <a href="http://mapbox.com">Mapbox</a>',
     id: 'mapbox.outdoors'
 }).addTo(map);
 
 // control that shows state info on hover
 var info = L.control();
+var maxValue = 0;
+var minValue = 0;
 
 info.onAdd = function (map) {
     this._div = L.DomUtil.create('div', 'info');
@@ -18,8 +17,8 @@ info.onAdd = function (map) {
 };
 
 info.update = function (props) {
-    this._div.innerHTML = '<h4>Patient Records in DB</h4>' +  (props ?
-        '<b>' + props.name + '</b><br />' + props.density + ' patient records'
+    this._div.innerHTML = '<h4>Patient Data in HANA</h4>' +  (props ?
+        '<b>' + props.name + '</b><br />' + props.density + ' '
         : 'Hover over a state');
 };
 
@@ -27,13 +26,14 @@ info.addTo(map);
 
 // get color depending on values
 function getColor(d) {
-    return d > 1000 ? '#800026' :
-    d > 500  ? '#BD0026' :
-    d > 200  ? '#E31A1C' :
-    d > 100  ? '#FC4E2A' :
-    d > 50   ? '#FD8D3C' :
-    d > 20   ? '#FEB24C' :
-    d > 10   ? '#FED976' :
+    var diff = maxValue - minValue;
+    return d > diff * 0.6 + minValue ? '#800026' :
+    d > diff * 0.35 + minValue ? '#BD0026' :
+    d > diff * 0.25 + minValue ? '#E31A1C' :
+    d > diff * 0.10 + minValue ? '#FC4E2A' :
+    d > diff * 0.05 + minValue ? '#FD8D3C' :
+    d > diff * 0.01 + minValue  ? '#FEB24C' :
+    d > diff * 0.001 + minValue  ? '#FED976' :
     '#FFEDA0';
 }
 
@@ -103,38 +103,67 @@ function colorMap(sqlResult) {
     updateGeoJson();
 }
 
-function sqlRequest() {
-    $.get( "sql_statement/patients", function( data ) {
-        colorMap(data);
+function sqlRequest(input_string) {
+    $.get( "sql_statement/" + input_string, function( data ) {
+        maxValue = Math.max.apply(Math, Object.values(data));
+        minValue = Math.min.apply(Math, Object.values(data));
+        colorMap(data, maxValue);
     });
 }
 
-// legend
-var legend = L.control({position: 'bottomright'});
+function updateMap() {
+    var value = document.getElementById("sql_dropdown").value;
+    var yearValue = document.getElementById("year_dropdown").value;
+    var genderValue = document.getElementById("gender_dropdown").value;
 
-legend.onAdd = function (map) {
-
-    var div = L.DomUtil.create('div', 'info legend'),
-    grades = [0, 10, 20, 50, 100, 200, 500, 1000],
-    labels = [],
-    from, to;
-
-    for (var i = 0; i < grades.length; i++) {
-        from = grades[i];
-        to = grades[i + 1];
-        labels.push(
-            '<i style="background:' + getColor(from + 1) + '"></i> ' +
-            from + (to ? '&ndash;' + to : '+'));
+    var filters = [];
+    if (yearValue != "") {
+        filters.push("yearofbirth=" + yearValue);
     }
-    div.innerHTML = labels.join('<br>');
-    return div;
-};
-
-legend.addTo(map);
+    if (genderValue != "") {
+        filters.push("gender=" + genderValue);
+    }
+    if (filters.length == 0) {
+        sqlRequest(value);
+    } else {
+        sqlRequest(value + "/" + filters.join());
+    }
+}
 
 geojson = L.geoJson(statesData, {
     style: style,
     onEachFeature: onEachFeature
 }).addTo(map);
 
-sqlRequest();
+var dropdowns = L.control({position: 'bottomright'});
+
+dropdowns.onAdd = function (map) {
+    var div = L.DomUtil.create('div', 'info dropdowns');
+
+    var dd = "<select id='sql_dropdown' onchange='updateMap()'>"
+    var values = ["patients", "doctor_visits", "rel_patients", "rel_doctor_visits", "average_bmi", "smoking_status"];
+    for (var i = 0; i < values.length; i++) {
+        dd += '<option>' + values[i] + '</option>';
+    }
+    dd += "</select><br><br>Filters:<br>year of birth: <select id='year_dropdown' onchange='updateMap()'>";
+
+    var years = ["","1922","1923","1924","1925","1926","1927","1928","1929","1930","1931","1932","1933","1934","1935","1936","1937","1938","1939","1940","1941","1942","1943","1944","1945","1946","1947","1948","1949","1950","1951","1952","1953","1954","1955","1956","1957","1958","1959","1960","1961","1962","1963","1964","1965","1966","1967","1968","1969","1970","1971","1972","1973","1974","1975","1976","1977","1978","1979","1980","1981","1982","1983","1984","1985","1986","1987","1988","1989","1990","1991","1992","1993","1994"];
+    for (var i = 0; i < years.length; i++) {
+        dd += '<option>' + years[i] + '</option>';
+    }
+    dd += "</select><br>gender: <select id='gender_dropdown' onchange='updateMap()'>";
+
+    var genders = ["", "F", "M"];
+    for (var i = 0; i < genders.length; i++) {
+        dd += '<option>' + genders[i] + '</option>';
+    }
+    dd += "</select>";
+
+
+    div.innerHTML = dd;
+    return div;
+};
+
+dropdowns.addTo(map);
+
+updateMap();
