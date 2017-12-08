@@ -104,7 +104,7 @@ function colorMap(sqlResult) {
 }
 
 function sqlRequest() {
-    $.get( "sql_statement", function( data ) {
+    $.get( "sql_statement/patients", function( data ) {
         colorMap(data);
     });
 }
