@@ -9,7 +9,8 @@ statements = {
     'doctor_visits': 'select state,count(*) number from "Patient" p, "Transcript" t where t.patientguid=p.patientguid {} group by state',
     'rel_patients': 'select result.state,number/population * 100 from ( select state,count(*) number from "Patient" p where 1=1 {} group by state) result, statepopulation sp where result.state=sp.state',
     'rel_doctor_visits': 'select result.state,number/population * 100 from (select state,count(*) number from "Patient" p, "Transcript" t where t.patientguid=p.patientguid {} group by state) result, statepopulation sp where result.state=sp.state',
-    'average_bmi': 'select state,avg(bmi) number from "Patient" p, "Transcript" t where t.patientguid=p.patientguid and bmi > 15 and bmi < 40 {} group by state'
+    'average_bmi': 'select state,avg(bmi) number from "Patient" p, "Transcript" t where t.patientguid=p.patientguid and bmi > 15 and bmi < 40 {} group by state',
+    'smoking_status': 'select state,avg(category) number from "Patient" p, "PatientSmokingStatus" pss, smokingstatushelper ssh where p.patientguid=pss.patientguid and pss.smokingstatusguid=ssh.smokingstatusguid {} group by state'
 }
 
 
