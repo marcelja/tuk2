@@ -66,3 +66,5 @@ credentials.yml
 .DS_Store
 
 data_import/csv_files/*.csv
+*.png
+*.tex
