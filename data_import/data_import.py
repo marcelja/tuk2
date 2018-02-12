@@ -6,6 +6,7 @@ ATTRIBUTE_EXCEPTIONS = {
     'diagnosis.startyear': 'smallint',
     'medication.medicationname': 'nvarchar(256)'
 }
+HANA_CSV_PATH = '/home/team04/practice_fusion'
 
 
 class DataImporter():
@@ -17,9 +18,18 @@ class DataImporter():
     def create_tables(self):
         for file in glob.glob(self.csv_path + '/*.csv'):
             self._create_table(file)
+        print()
+        for file in glob.glob(self.csv_path + '/*.csv'):
+            self._import_stmt(file)
 
     def _run_sql(self, statement):
         print(statement)
+
+    def _import_stmt(self, csv_file):
+        table_name = csv_file.split('/')[-1].replace('.csv', '')
+        print('import from csv file \'{}/{}.csv\' into "{}";'.format(HANA_CSV_PATH,
+                                                                     table_name,
+                                                                     table_name))
 
     def _create_table(self, csv_file):
         with open(csv_file, 'r') as f:
