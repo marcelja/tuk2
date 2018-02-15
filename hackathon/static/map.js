@@ -8,7 +8,9 @@ L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=p
 // control that shows state info on hover
 var info = L.control();
 var maxValue = 0;
-var minValue = 0;
+var minValue = 1;
+
+var filterYear = -1;
 
 info.onAdd = function (map) {
     this._div = L.DomUtil.create('div', 'info');
@@ -27,12 +29,12 @@ info.addTo(map);
 // get color depending on values
 function getColor(d) {
     var diff = maxValue - minValue;
-    return d > diff * 0.9 + minValue ? '#800026' :
+    return d > diff * 0.75 + minValue ? '#800026' :
     d > diff * 0.7 + minValue ? '#BD0026' :
-    d > diff * 0.6 + minValue ? '#E31A1C' :
-    d > diff * 0.5 + minValue ? '#FC4E2A' :
-    d > diff * 0.4 + minValue ? '#FD8D3C' :
-    d > diff * 0.3 + minValue  ? '#FEB24C' :
+    d > diff * 0.5 + minValue ? '#E31A1C' :
+    d > diff * 0.35 + minValue ? '#FC4E2A' :
+    d > diff * 0.3 + minValue ? '#FD8D3C' :
+    d > diff * 0.25 + minValue  ? '#FEB24C' :
     d > diff * 0.2 + minValue  ? '#FED976' :
     '#FFEDA0';
 }
@@ -92,19 +94,37 @@ function updateGeoJson() {
     }).addTo(map);
 }
 
+function calcAvg(list) {
+    var total = 0;
+    for(var i = 0; i < list.length; i++) {
+        total += list[i];
+    }
+    return total / list.length;
+}
+
 function colorMap(sqlResult) {
     var states = statesData["features"];
     for (var i = 0; i<states.length; i++) {
         var stateName = states[i]["properties"]["name"];
-        states[i]["properties"]["density"] = sqlResult[stateName];
+        if (filterYear == -1) {
+            // console.log(calcAvg(sqlResult[stateName]))
+            states[i]["properties"]["density"] = calcAvg(sqlResult[stateName]);
+        }
     }
     updateGeoJson();
 }
 
 function sqlRequest(input_string) {
     $.get( "sql_statement/" + input_string, function( data ) {
-        maxValue = Math.max.apply(Math, Object.values(data));
-        minValue = Math.min.apply(Math, Object.values(data));
+        maxValue = 0;
+        minValue = 1;
+        for (var key in data) {
+          var max = Math.max(...data[key]);
+          var min = Math.min(...data[key]);
+          if (max > maxValue) maxValue = max;
+          if (min < minValue) minValue = min;
+        }
+        console.log(minValue, maxValue);
         colorMap(data);
     });
 }
