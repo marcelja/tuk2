@@ -7,11 +7,15 @@ L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=p
 
 // control that shows state info on hover
 var info = L.control();
-var maxValue = 0;
-var minValue = 1;
+var maxValue1 = 0;
+var maxValue2 = 0;
+var minValue1 = 1;
+var minValue2 = 1;
+var circles = [];
 
 var filterYear = -1;
-var currentSqlResult;
+var currentSqlResult1;
+var currentSqlResult2;
 
 info.onAdd = function (map) {
     this._div = L.DomUtil.create('div', 'info');
@@ -29,14 +33,14 @@ info.addTo(map);
 
 // get color depending on values
 function getColor(d) {
-    var diff = maxValue - minValue;
-    return d > diff * 0.75 + minValue ? '#800026' :
-    d > diff * 0.7 + minValue ? '#BD0026' :
-    d > diff * 0.5 + minValue ? '#E31A1C' :
-    d > diff * 0.35 + minValue ? '#FC4E2A' :
-    d > diff * 0.3 + minValue ? '#FD8D3C' :
-    d > diff * 0.25 + minValue  ? '#FEB24C' :
-    d > diff * 0.2 + minValue  ? '#FED976' :
+    var diff = maxValue1 - minValue1;
+    return d > diff * 0.75 + minValue1 ? '#800026' :
+    d > diff * 0.7 + minValue1 ? '#BD0026' :
+    d > diff * 0.5 + minValue1 ? '#E31A1C' :
+    d > diff * 0.35 + minValue1 ? '#FC4E2A' :
+    d > diff * 0.3 + minValue1 ? '#FD8D3C' :
+    d > diff * 0.25 + minValue1  ? '#FEB24C' :
+    d > diff * 0.2 + minValue1  ? '#FED976' :
     '#FFEDA0';
 }
 
@@ -103,90 +107,136 @@ function calcAvg(list) {
     return total / list.length;
 }
 
-function updateYearFilter(year) {
-    filterYear = year;
+// function updateYearFilter(year) {
+//     filterYear = year;
 
-    var states = statesData["features"];
-    for (var i = 0; i<states.length; i++) {
-        var stateName = states[i]["properties"]["name"];
-        if (stateName in currentSqlResult) {
-            states[i]["properties"]["density"] = currentSqlResult[stateName][filterYear - 2013];
-        }
+//     var states = statesData["features"];
+//     for (var i = 0; i<states.length; i++) {
+//         var stateName = states[i]["properties"]["name"];
+//         if (stateName in currentSqlResult) {
+//             states[i]["properties"]["density"] = currentSqlResult[stateName][filterYear - 2013];
+//         }
+//     }
+//     updateGeoJson();
+
+
+//     console.log(123);
+//     for (var i = 0; i < statesData["features"].length; i++) {
+//         var center = L.polygon(statesData["features"][i]["geometry"]["coordinates"]).getBounds().getCenter();
+//         var circle = L.circle([center["lng"], center["lat"]], {
+//             color: 'red',
+//             fillColor: '#f03',
+//             fillOpacity: 0.5,
+//             radius: Math.random() * 50000
+//         }).addTo(map);
+//         circles.push(circle);
+//     }
+
+// }
+
+
+function setRadius() {
+    for (var i = 0; i < circles.length; i++) {
+            map.removeLayer(circles[i]);
+
     }
-    updateGeoJson();
-
-}
-
-function colorMap(sqlResult) {
-    currentSqlResult = sqlResult;
     var states = statesData["features"];
-    for (var i = 0; i<states.length; i++) {
-        var stateName = states[i]["properties"]["name"];
-        if (filterYear == -1) {
-            if (stateName in sqlResult) {
-                states[i]["properties"]["density"] = calcAvg(sqlResult[stateName]);
-            }
-        }
-    }
-
-    updateGeoJson();
-        console.log(statesData);
     for (var i = 0; i < statesData["features"].length; i++) {
         var center = L.polygon(statesData["features"][i]["geometry"]["coordinates"]).getBounds().getCenter();
-        console.log([center["lng"], center["lat"]]);
-        var circle = L.circle([center["lng"], center["lat"]], {
-            color: 'red',
-            fillColor: '#f03',
-            fillOpacity: 0.5,
-            radius: 50000
-        }).addTo(map); 
+        var stateName = states[i]["properties"]["name"];
+        var value;
+
+        if (stateName in currentSqlResult2) {
+            if (filterYear == -1) {
+                value = calcAvg(currentSqlResult2[stateName]);
+            } else {
+                value = currentSqlResult2[stateName][filterYear - 2013];
+            }
+            var circle = L.circle([center["lng"], center["lat"]], {
+                color: 'blue',
+                fillColor: 'blue',
+                fillOpacity: 0.5,
+                radius: value * 15000
+            }).addTo(map);
+            circles.push(circle);
+        }
     }
 }
 
-function sqlRequest(input_string) {
+function colorMap() {
+    var states = statesData["features"];
+    for (var i = 0; i<states.length; i++) {
+        var stateName = states[i]["properties"]["name"];
+        if (stateName in currentSqlResult1) {
+            var value;
+            if (filterYear == -1) {
+                value = calcAvg(currentSqlResult1[stateName]);
+            } else {
+                value = currentSqlResult1[stateName][filterYear - 2013];
+            }
+            states[i]["properties"]["density"] = value;
+        }
+    }
+
+    updateGeoJson();
+
+    // console.log(123);
+    // for (var i = 0; i < statesData["features"].length; i++) {
+    //     var center = L.polygon(statesData["features"][i]["geometry"]["coordinates"]).getBounds().getCenter();
+    //     var circle = L.circle([center["lng"], center["lat"]], {
+    //         color: 'red',
+    //         fillColor: '#f03',
+    //         fillOpacity: 0.5,
+    //         radius: Math.random() * 50000
+    //     }).addTo(map);
+    //     circles.push(circle);
+    // }
+}
+
+function sqlRequest1(input_string) {
     $.get( "sql_statement/" + input_string, function( data ) {
-        maxValue = 0;
-        minValue = 1;
+        maxValue1 = 0;
+        minValue1 = 1;
         for (var key in data) {
           var max = Math.max(...data[key]);
           var min = Math.min(...data[key]);
-          if (max > maxValue) maxValue = max;
-          if (min < minValue) minValue = min;
+          if (max > maxValue1) maxValue1 = max;
+          if (min < minValue1) minValue1 = min;
         }
-        console.log(minValue, maxValue);
-        colorMap(data);
+        currentSqlResult1 = data;
+
+        // console.log(minValue, maxValue);
+        colorMap();
+    });
+}
+
+function sqlRequest2(input_string) {
+    $.get( "sql_statement/" + input_string, function( data ) {
+        maxValue2 = 0;
+        minValue2 = 1;
+        for (var key in data) {
+          var max = Math.max(...data[key]);
+          var min = Math.min(...data[key]);
+          if (max > maxValue2) maxValue2 = max;
+          if (min < minValue2) minValue2 = min;
+        }
+        // console.log(minValue, maxValue);
+        currentSqlResult2 = data;
+
+        setRadius();
     });
 }
 
 function updateMap() {
-    var value = document.getElementById("d_dropdown").value;
-    // var yearValue = document.getElementById("year_dropdown").value;
-    // var genderValue = document.getElementById("gender_dropdown").value;
-
-
-    // var filters = [];
-    console.log(value);
-    if (value == "employment") {
-        sqlRequest("employment");
-        
-    } else if (value == "depression diagnosis") {
-        sqlRequest("depr")
-    }
-    else {
-        sqlRequest("deprdays");
-    }
-    //  else {
-    //     sqlRequest(value + "deprdays/" + filters.join());
-    // }
-
-
+    sqlRequest1("deprdays");
+    sqlRequest2("unemployment");
 }
 
 function updateDropdown() {
     document.getElementById("myRange").value = 50;
     var output = document.getElementById("demo");
     output.innerHTML = "all years";
-    updateYearFilter(-1);
+    filterYear = -1;
     updateMap();
 }
 
@@ -206,13 +256,18 @@ dropdowns.onAdd = function (map) {
 </div>`
 
     dd += "<select id='d_dropdown' onchange='updateDropdown()'>";
-
-    var genders = ["depression days", "depression diagnosis", "employment"];
+    var genders = ["depression days", "depression diagnosis", "unemployment"];
     for (var i = 0; i < genders.length; i++) {
         dd += '<option>' + genders[i] + '</option>';
     }
     dd += "</select>";
 
+    dd += "<select id='d_dropdown' onchange='updateDropdown()'>";
+    var genders = ["depression days", "depression diagnosis", "unemployment"];
+    for (var i = 0; i < genders.length; i++) {
+        dd += '<option>' + genders[i] + '</option>';
+    }
+    dd += "</select>";
 
     div.innerHTML = dd;
     return div;
@@ -228,7 +283,9 @@ output.innerHTML = "all years";
 slider.oninput = function() {
   map.dragging.disable();
   output.innerHTML = Math.round(this.value / 33 + 2013);
-  updateYearFilter(Math.round(this.value / 33 + 2013))
+  filterYear = Math.round(this.value / 33 + 2013);
+  colorMap();
+  setRadius();
 }
 
 slider.onmouseup = function() {
