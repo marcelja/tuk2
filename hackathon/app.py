@@ -47,7 +47,8 @@ def root():
 @app.route('/sql_statement/<key>')
 def sql_statement(key):
     print('Statement for: ' + key)
-    return execute_stmt('select t1.state, t1.c/t2.c, t1.year from (select count(*) as c,year,state from transformed_brfss where ADDEPEV2=1 and year!=2017 group by year,state) t1, (select count(*) as c,year,state from transformed_brfss where (ADDEPEV2=2 or addepev2=1) and year!=2017 group by year,state) t2 where t1.year=t2.year and t1.state=t2.state order by t1.state, t1.year')
+    # return execute_stmt('select t1.state, t1.c/t2.c, t1.year from (select count(*) as c,year,state from transformed_brfss where ADDEPEV2=1 and year!=2017 group by year,state) t1, (select count(*) as c,year,state from transformed_brfss where (ADDEPEV2=2 or addepev2=1) and year!=2017 group by year,state) t2 where t1.year=t2.year and t1.state=t2.state order by t1.state, t1.year')
+    return execute_stmt('select t1.state, t1.c/t2.c, t1.year from (select count(*) as c,year,state from transformed_brfss where (menthlth=1 or menthlth=2) and year!=2017 group by year,state) t1,(select count(*) as c,year,state from transformed_brfss where (menthlth=1 or menthlth=2 or menthlth=0) and year!=2017 group by year,state) t2 where t1.year=t2.year and t1.state=t2.state order by t1.state, t1.year')
     # if key in statements:
     #     return execute_stmt(statements[key].format(''))
     # else:

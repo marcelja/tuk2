@@ -209,12 +209,11 @@ var output = document.getElementById("demo");
 output.innerHTML = "all years";
 
 slider.oninput = function() {
-
-    map.dragging.disable();
+  map.dragging.disable();
   output.innerHTML = Math.round(this.value / 33 + 2013);
   updateYearFilter(Math.round(this.value / 33 + 2013))
 }
 
 slider.onmouseup = function() {
-    map.dragging.enable();
+  map.dragging.enable();
 }
