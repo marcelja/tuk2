@@ -107,33 +107,6 @@ function calcAvg(list) {
     return total / list.length;
 }
 
-// function updateYearFilter(year) {
-//     filterYear = year;
-
-//     var states = statesData["features"];
-//     for (var i = 0; i<states.length; i++) {
-//         var stateName = states[i]["properties"]["name"];
-//         if (stateName in currentSqlResult) {
-//             states[i]["properties"]["density"] = currentSqlResult[stateName][filterYear - 2013];
-//         }
-//     }
-//     updateGeoJson();
-
-
-//     console.log(123);
-//     for (var i = 0; i < statesData["features"].length; i++) {
-//         var center = L.polygon(statesData["features"][i]["geometry"]["coordinates"]).getBounds().getCenter();
-//         var circle = L.circle([center["lng"], center["lat"]], {
-//             color: 'red',
-//             fillColor: '#f03',
-//             fillOpacity: 0.5,
-//             radius: Math.random() * 50000
-//         }).addTo(map);
-//         circles.push(circle);
-//     }
-
-// }
-
 
 function setRadius() {
     for (var i = 0; i < circles.length; i++) {
@@ -152,13 +125,15 @@ function setRadius() {
             } else {
                 value = currentSqlResult2[stateName][filterYear - 2013];
             }
-            var circle = L.circle([center["lng"], center["lat"]], {
-                color: 'blue',
-                fillColor: 'blue',
-                fillOpacity: 0.5,
-                radius: value * 15000
-            }).addTo(map);
-            circles.push(circle);
+            if (value != undefined) {
+                var circle = L.circle([center["lng"], center["lat"]], {
+                    color: 'blue',
+                    fillColor: 'blue',
+                    fillOpacity: 0.5,
+                    radius: ((value - minValue2) / (maxValue2 - minValue2)) * 100000
+                }).addTo(map);
+                circles.push(circle);
+            }
         }
     }
 }
@@ -227,8 +202,8 @@ function sqlRequest2(input_string) {
     });
 }
 
-function updateMap() {
-    sqlRequest1("deprdays");
+function initMap() {
+    sqlRequest1("depression days");
     sqlRequest2("unemployment");
 }
 
@@ -237,7 +212,15 @@ function updateDropdown() {
     var output = document.getElementById("demo");
     output.innerHTML = "all years";
     filterYear = -1;
-    updateMap();
+
+    var dd1 = document.getElementById("d_dropdown1");
+    var dd2 = document.getElementById("d_dropdown2");
+    console.log(dd1.value, dd2.value);
+
+    sqlRequest1(dd1.value);
+    sqlRequest2(dd2.value);
+
+
 }
 
 geojson = L.geoJson(statesData, {
@@ -255,15 +238,15 @@ dropdowns.onAdd = function (map) {
   <p>Year: <span id="demo"></span></p>
 </div>`
 
-    dd += "<select id='d_dropdown' onchange='updateDropdown()'>";
+    dd += "<select id='d_dropdown1' onchange='updateDropdown()'>";
     var genders = ["depression days", "depression diagnosis", "unemployment"];
     for (var i = 0; i < genders.length; i++) {
         dd += '<option>' + genders[i] + '</option>';
     }
     dd += "</select>";
 
-    dd += "<select id='d_dropdown' onchange='updateDropdown()'>";
-    var genders = ["depression days", "depression diagnosis", "unemployment"];
+    dd += "<select id='d_dropdown2' onchange='updateDropdown()'>";
+    var genders = ["unemployment", "depression diagnosis", "depression days"];
     for (var i = 0; i < genders.length; i++) {
         dd += '<option>' + genders[i] + '</option>';
     }
@@ -275,7 +258,7 @@ dropdowns.onAdd = function (map) {
 
 dropdowns.addTo(map);
 
-updateMap();
+initMap();
 var slider = document.getElementById("myRange");
 var output = document.getElementById("demo");
 output.innerHTML = "all years";
