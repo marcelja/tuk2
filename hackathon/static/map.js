@@ -62,7 +62,7 @@ function highlightFeature(e) {
     });
 
     if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
-        layer.bringToFront();
+        // layer.bringToFront();
     }
 
     info.update(layer.feature.properties);
@@ -128,7 +128,19 @@ function colorMap(sqlResult) {
             }
         }
     }
+
     updateGeoJson();
+        console.log(statesData);
+    for (var i = 0; i < statesData["features"].length; i++) {
+        var center = L.polygon(statesData["features"][i]["geometry"]["coordinates"]).getBounds().getCenter();
+        console.log([center["lng"], center["lat"]]);
+        var circle = L.circle([center["lng"], center["lat"]], {
+            color: 'red',
+            fillColor: '#f03',
+            fillOpacity: 0.5,
+            radius: 50000
+        }).addTo(map); 
+    }
 }
 
 function sqlRequest(input_string) {
@@ -151,6 +163,7 @@ function updateMap() {
     // var yearValue = document.getElementById("year_dropdown").value;
     // var genderValue = document.getElementById("gender_dropdown").value;
 
+
     // var filters = [];
     console.log(value);
     if (value == "employment") {
@@ -165,6 +178,8 @@ function updateMap() {
     //  else {
     //     sqlRequest(value + "deprdays/" + filters.join());
     // }
+
+
 }
 
 function updateDropdown() {
