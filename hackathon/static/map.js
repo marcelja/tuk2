@@ -11,6 +11,7 @@ var maxValue = 0;
 var minValue = 1;
 
 var filterYear = -1;
+var currentSqlResult;
 
 info.onAdd = function (map) {
     this._div = L.DomUtil.create('div', 'info');
@@ -19,7 +20,7 @@ info.onAdd = function (map) {
 };
 
 info.update = function (props) {
-    this._div.innerHTML = '<h4>Patient Data in HANA</h4>' +  (props ?
+    this._div.innerHTML = '<h4>Depression Data in the USA</h4>' +  (props ?
         '<b>' + props.name + '</b><br />' + props.density + ' '
         : 'Hover over a state');
 };
@@ -102,12 +103,24 @@ function calcAvg(list) {
     return total / list.length;
 }
 
+function updateYearFilter(year) {
+    filterYear = year;
+
+    var states = statesData["features"];
+    for (var i = 0; i<states.length; i++) {
+        var stateName = states[i]["properties"]["name"];
+        states[i]["properties"]["density"] = currentSqlResult[stateName][filterYear - 2013];
+    }
+    updateGeoJson();
+
+}
+
 function colorMap(sqlResult) {
+    currentSqlResult = sqlResult;
     var states = statesData["features"];
     for (var i = 0; i<states.length; i++) {
         var stateName = states[i]["properties"]["name"];
         if (filterYear == -1) {
-            // console.log(calcAvg(sqlResult[stateName]))
             states[i]["properties"]["density"] = calcAvg(sqlResult[stateName]);
         }
     }
@@ -158,18 +171,24 @@ var dropdowns = L.control({position: 'bottomright'});
 dropdowns.onAdd = function (map) {
     var div = L.DomUtil.create('div', 'info dropdowns');
 
-    var dd = "<select id='sql_dropdown' onchange='updateMap()'>"
+    var dd = `<div class="slidecontainer">
+  <input type="range" min="1" max="100" value="50" class="slider" id="myRange">
+  <p>Year: <span id="demo"></span></p>
+</div>
+
+    <select id='sql_dropdown' onchange='updateMap()' style="display: none;">`
+
     var values = ["patients", "doctor_visits", "rel_patients", "rel_doctor_visits", "average_bmi", "smoking_status"];
     for (var i = 0; i < values.length; i++) {
         dd += '<option>' + values[i] + '</option>';
     }
-    dd += "</select><br><br>Filters:<br>year of birth: <select id='year_dropdown' onchange='updateMap()'>";
+    dd += "</select><select id='year_dropdown' onchange='updateMap()' style='display: none;'>";
 
     var years = ["","1922","1923","1924","1925","1926","1927","1928","1929","1930","1931","1932","1933","1934","1935","1936","1937","1938","1939","1940","1941","1942","1943","1944","1945","1946","1947","1948","1949","1950","1951","1952","1953","1954","1955","1956","1957","1958","1959","1960","1961","1962","1963","1964","1965","1966","1967","1968","1969","1970","1971","1972","1973","1974","1975","1976","1977","1978","1979","1980","1981","1982","1983","1984","1985","1986","1987","1988","1989","1990","1991","1992","1993","1994"];
     for (var i = 0; i < years.length; i++) {
         dd += '<option>' + years[i] + '</option>';
     }
-    dd += "</select><br>gender: <select id='gender_dropdown' onchange='updateMap()'>";
+    dd += "</select><select id='gender_dropdown' onchange='updateMap()' style='display: none;'>";
 
     var genders = ["", "F", "M"];
     for (var i = 0; i < genders.length; i++) {
@@ -185,3 +204,17 @@ dropdowns.onAdd = function (map) {
 dropdowns.addTo(map);
 
 updateMap();
+var slider = document.getElementById("myRange");
+var output = document.getElementById("demo");
+output.innerHTML = "all years";
+
+slider.oninput = function() {
+
+    map.dragging.disable();
+  output.innerHTML = Math.round(this.value / 33 + 2013);
+  updateYearFilter(Math.round(this.value / 33 + 2013))
+}
+
+slider.onmouseup = function() {
+    map.dragging.enable();
+}
