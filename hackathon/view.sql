@@ -113,9 +113,8 @@ CASE
   ELSE MSCODE END AS MSCODE,
 CASE 
   WHEN MENTHLTH = 88 THEN 0
-  WHEN MENTHLTH = 99 or MENTHLTH is NULL THEN -1
   WHEN MENTHLTH > 0 and MENTHLTH < 10 THEN 0
   WHEN MENTHLTH >= 10 and MENTHLTH < 20 THEN 1
-  WHEN MENTHLTH >= 20 and MENTHLTH < 30 THEN 2
-  ELSE MENTHLTH END as MENTHLTH, iyear as year, imonth as month, _state as state
+  WHEN MENTHLTH >= 20 and MENTHLTH <= 30 THEN 2
+  ELSE -1 END as MENTHLTH, iyear as year, imonth as month, _state as state
   FROM BRFSS;
