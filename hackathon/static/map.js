@@ -109,7 +109,9 @@ function updateYearFilter(year) {
     var states = statesData["features"];
     for (var i = 0; i<states.length; i++) {
         var stateName = states[i]["properties"]["name"];
-        states[i]["properties"]["density"] = currentSqlResult[stateName][filterYear - 2013];
+        if (stateName in currentSqlResult) {
+            states[i]["properties"]["density"] = currentSqlResult[stateName][filterYear - 2013];
+        }
     }
     updateGeoJson();
 
@@ -121,7 +123,9 @@ function colorMap(sqlResult) {
     for (var i = 0; i<states.length; i++) {
         var stateName = states[i]["properties"]["name"];
         if (filterYear == -1) {
-            states[i]["properties"]["density"] = calcAvg(sqlResult[stateName]);
+            if (stateName in sqlResult) {
+                states[i]["properties"]["density"] = calcAvg(sqlResult[stateName]);
+            }
         }
     }
     updateGeoJson();
@@ -143,22 +147,32 @@ function sqlRequest(input_string) {
 }
 
 function updateMap() {
-    var value = document.getElementById("sql_dropdown").value;
-    var yearValue = document.getElementById("year_dropdown").value;
-    var genderValue = document.getElementById("gender_dropdown").value;
+    var value = document.getElementById("d_dropdown").value;
+    // var yearValue = document.getElementById("year_dropdown").value;
+    // var genderValue = document.getElementById("gender_dropdown").value;
 
-    var filters = [];
-    if (yearValue != "") {
-        filters.push("yearofbirth=" + yearValue);
+    // var filters = [];
+    console.log(value);
+    if (value == "employment") {
+        sqlRequest("employment");
+        
+    } else if (value == "depression diagnosis") {
+        sqlRequest("depr")
     }
-    if (genderValue != "") {
-        filters.push("gender=" + genderValue);
+    else {
+        sqlRequest("deprdays");
     }
-    if (filters.length == 0) {
-        sqlRequest(value);
-    } else {
-        sqlRequest(value + "/" + filters.join());
-    }
+    //  else {
+    //     sqlRequest(value + "deprdays/" + filters.join());
+    // }
+}
+
+function updateDropdown() {
+    document.getElementById("myRange").value = 50;
+    var output = document.getElementById("demo");
+    output.innerHTML = "all years";
+    updateYearFilter(-1);
+    updateMap();
 }
 
 geojson = L.geoJson(statesData, {
@@ -174,23 +188,11 @@ dropdowns.onAdd = function (map) {
     var dd = `<div class="slidecontainer">
   <input type="range" min="1" max="100" value="50" class="slider" id="myRange">
   <p>Year: <span id="demo"></span></p>
-</div>
+</div>`
 
-    <select id='sql_dropdown' onchange='updateMap()' style="display: none;">`
+    dd += "<select id='d_dropdown' onchange='updateDropdown()'>";
 
-    var values = ["patients", "doctor_visits", "rel_patients", "rel_doctor_visits", "average_bmi", "smoking_status"];
-    for (var i = 0; i < values.length; i++) {
-        dd += '<option>' + values[i] + '</option>';
-    }
-    dd += "</select><select id='year_dropdown' onchange='updateMap()' style='display: none;'>";
-
-    var years = ["","1922","1923","1924","1925","1926","1927","1928","1929","1930","1931","1932","1933","1934","1935","1936","1937","1938","1939","1940","1941","1942","1943","1944","1945","1946","1947","1948","1949","1950","1951","1952","1953","1954","1955","1956","1957","1958","1959","1960","1961","1962","1963","1964","1965","1966","1967","1968","1969","1970","1971","1972","1973","1974","1975","1976","1977","1978","1979","1980","1981","1982","1983","1984","1985","1986","1987","1988","1989","1990","1991","1992","1993","1994"];
-    for (var i = 0; i < years.length; i++) {
-        dd += '<option>' + years[i] + '</option>';
-    }
-    dd += "</select><select id='gender_dropdown' onchange='updateMap()' style='display: none;'>";
-
-    var genders = ["", "F", "M"];
+    var genders = ["depression days", "depression diagnosis", "employment"];
     for (var i = 0; i < genders.length; i++) {
         dd += '<option>' + genders[i] + '</option>';
     }
