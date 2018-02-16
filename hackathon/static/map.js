@@ -126,12 +126,15 @@ function setRadius() {
                 value = currentSqlResult2[stateName][filterYear - 2013];
             }
             if (value != undefined) {
-                var circle = L.circle([center["lng"], center["lat"]], {
-                    color: 'blue',
-                    fillColor: 'blue',
-                    fillOpacity: 0.5,
-                    radius: ((value - minValue2) / (maxValue2 - minValue2)) * 100000
-                }).addTo(map);
+                var circle = L.rectangle([[center["lng"], center["lat"] - 0.25], [center["lng"] + ((value - minValue2) / (maxValue2 - minValue2)) * 3, center["lat"] + 0.25]], {color: "blue", weight: 2}).addTo(map);
+
+
+                // L.circle([center["lng"], center["lat"]], {
+                //     color: 'blue',
+                //     fillColor: 'blue',
+                //     fillOpacity: 0.5,
+                //     radius: ((value - minValue2) / (maxValue2 - minValue2)) * 100000
+                // }).addTo(map);
                 circles.push(circle);
             }
         }
@@ -154,18 +157,6 @@ function colorMap() {
     }
 
     updateGeoJson();
-
-    // console.log(123);
-    // for (var i = 0; i < statesData["features"].length; i++) {
-    //     var center = L.polygon(statesData["features"][i]["geometry"]["coordinates"]).getBounds().getCenter();
-    //     var circle = L.circle([center["lng"], center["lat"]], {
-    //         color: 'red',
-    //         fillColor: '#f03',
-    //         fillOpacity: 0.5,
-    //         radius: Math.random() * 50000
-    //     }).addTo(map);
-    //     circles.push(circle);
-    // }
 }
 
 function sqlRequest1(input_string) {
