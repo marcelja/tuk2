@@ -230,14 +230,14 @@ dropdowns.onAdd = function (map) {
 </div>`
 
     dd += "<select id='d_dropdown1' onchange='updateDropdown()'>";
-    var genders = ["depression diagnosis", "depression days", "unemployment", "unable or unemployed"];
+    var genders = ["depression diagnosis", "depression days", "unable or unemployed"];
     for (var i = 0; i < genders.length; i++) {
         dd += '<option>' + genders[i] + '</option>';
     }
     dd += "</select>";
 
     dd += "<select id='d_dropdown2' onchange='updateDropdown()'>";
-    var genders = ["unable or unemployed", "depression diagnosis", "depression days", "unemployment"];
+    var genders = ["unable or unemployed", "depression diagnosis", "depression days"];
     for (var i = 0; i < genders.length; i++) {
         dd += '<option>' + genders[i] + '</option>';
     }
