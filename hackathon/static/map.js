@@ -195,7 +195,7 @@ function sqlRequest2(input_string) {
 
 function initMap() {
     sqlRequest1("depression days");
-    sqlRequest2("unemployment");
+    sqlRequest2("unable or unemployed");
 }
 
 function updateDropdown() {
