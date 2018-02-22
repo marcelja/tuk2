@@ -43,4 +43,4 @@ if __name__ == "__main__":
         credentials = yaml.load(f)
     connection = pyhdb.connect(**credentials)
     cursor = connection.cursor()
-    app.run(port=8000)
+    app.run(host=0.0.0.0, port=80)
